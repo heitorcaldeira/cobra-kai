@@ -9,6 +9,23 @@ export default class Snake {
     this.ctx = ctx;
     this.dir = new Vector2(0, 0);
     this.pos = new Vector2(100, 100);
+
+    window.addEventListener('keydown', this.moveSnake);
+  }
+
+  moveSnake(event: KeyboardEvent) {
+    if (event.code === 'KeyA') {
+      this.dir = new Vector2(-1, 0);
+    }
+    if (event.code === 'KeyD') {
+      this.dir = new Vector2(1, 0);
+    }
+    if (event.code === 'KeyW') {
+      this.dir = new Vector2(0, -1);
+    }
+    if (event.code === 'KeyS') {
+      this.dir = new Vector2(0, 1);
+    }
   }
 
   update() {

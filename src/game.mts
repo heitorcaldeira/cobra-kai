@@ -1,63 +1,55 @@
 import Board from './board.mjs';
-import { Vector2 } from './common.mjs';
 import Snake from './snake.mjs';
 
-document.addEventListener('DOMContentLoaded', () => {
-  window.addEventListener('resize', setCanvasSize);
-  window.addEventListener('keydown', onKeyDown);
-  const canvas = document.getElementById('game') as HTMLCanvasElement;
-  var board: Board;
-  var snake: Snake;
-  var ctx = canvas.getContext('2d');
+export class Game {
+  ctx: CanvasRenderingContext2D;
+  lastUpdate: number;
+  board: Board;
+  snake: Snake;
+  fps: number[];
 
-  if (canvas) {
-    setCanvasSize();
+  constructor(context: CanvasRenderingContext2D) {
+    this.fps = [];
+    this.ctx = context;
+    this.board = new Board(context, 20);
+    this.snake = new Snake(context);
+    this.lastUpdate = 0;
+  }
 
+  update(timestamp: number) {
+    this.updateFps(timestamp);
+    this.board.update(timestamp);
+    this.snake.update();
+  }
 
-    if (ctx) {
-      board = new Board(ctx, 1000);
-      snake = new Snake(ctx);
+  updateFps(timestamp: number) {
+    const deltaTime = (timestamp - this.lastUpdate) / 1000;
+    this.lastUpdate = timestamp;
+    this.fps.push(deltaTime);
+
+    if (this.fps.length > 60) {
+      this.fps.shift();
     }
   }
 
-  function setCanvasSize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  drawFps() {
+    const ratio = this.fps.reduce((a, b) => a + b, 0) / this.fps.length;
+    const fps = Math.round(1 / ratio);
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = '14px serif';
+    this.ctx.fillText(`${fps} fps`, 10, 20);
   }
 
-  function onKeyDown(event: KeyboardEvent) {
-    if (event.code === 'KeyA') {
-      snake.dir = new Vector2(-1, 0);
-    }
-    if (event.code === 'KeyD') {
-      snake.dir = new Vector2(1, 0);
-    }
-    if (event.code === 'KeyW') {
-      snake.dir = new Vector2(0, -1);
-    }
-    if (event.code === 'KeyS') {
-      snake.dir = new Vector2(0, 1);
-    }
+  drawGame() {
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    this.drawFps();
+    this.snake.draw();
+    this.board.drawWorld();
   }
 
-  function mainLoop(timestamp: number) {
-    if (!ctx) return;
-
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    board.update(timestamp);
-    snake.update();
-
-    snake.draw();
-    board.drawWorld();
-
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    board.drawFps();
-    requestAnimationFrame(mainLoop);
+  start(timestamp: number) {
+    this.update(timestamp);
+    this.drawGame();
   }
-
-  requestAnimationFrame(timestamp => {
-    mainLoop(timestamp);
-  })
-});
-
+}
