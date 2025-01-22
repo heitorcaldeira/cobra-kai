@@ -1,21 +1,29 @@
 import Board from './board.mjs';
-import Snake from './snake.mjs';
+import { generateRandom, Vector2, Vector4 } from './common.mjs';
+import Snake, { CELL_SIZE } from './snake.mjs';
 
 const VELOCITY = 10;
+const FOOD_LIMIT = 10;
 const MOVE_INTERNAL = 1 / VELOCITY;
 
 export class Game {
   ctx: CanvasRenderingContext2D;
   lastUpdate: number;
+  running: boolean;
   board: Board;
   snake: Snake;
   fps: number[];
+  foods: Vector2[];
   acc: number = 0;
+  foodCount: number;
 
   constructor(context: CanvasRenderingContext2D) {
     this.fps = [];
+    this.foods = [];
+    this.running = true;
+    this.foodCount = 0;
     this.ctx = context;
-    this.board = new Board(context, 3000);
+    this.board = new Board(context, new Vector4(-1000, 2000, 2000, -1000));
     this.snake = new Snake(context);
     this.lastUpdate = 0;
   }
@@ -23,6 +31,14 @@ export class Game {
   update(timestamp: number) {
     this.board.update(timestamp);
     this.snake.update();
+    this.addFoods();
+
+    try {
+      this.board.checkWallCollision(this.snake.body.at(-1));
+    } catch(e) {
+      this.running = false;
+      this.snake.die();
+    }
   }
 
   updateFps(timestamp: number): number {
@@ -45,9 +61,19 @@ export class Game {
     this.ctx.fillText(`${fps} fps`, 10, 20);
   }
 
+  transform() {
+    const t = [1, 0, 0, 1, 0, 0];
+    const head = this.snake.body[this.snake.body.length - 1];
+    t[4] = -head.x * CELL_SIZE + window.innerWidth * 0.5;
+    t[5] = -head.y * CELL_SIZE + window.innerHeight * 0.5;
+    this.ctx.setTransform(...t as any);
+  }
+
   drawGame() {
+    this.transform();
     this.snake.draw();
     this.board.drawWorld();
+    this.board.drawFoods(this.foods);
   }
 
   clearContext() {
@@ -55,12 +81,20 @@ export class Game {
     this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   }
 
+  addFoods() {
+    if (this.foodCount < FOOD_LIMIT) {
+      this.foodCount += 1;
+      const x = Math.floor(generateRandom(this.board.boundaries.l, this.board.boundaries.r / 2) / CELL_SIZE);
+      const y = Math.floor(generateRandom(this.board.boundaries.t, this.board.boundaries.b / 2) / CELL_SIZE);
+      this.foods.push(new Vector2(x, y));
+    }
+  }
+
   start(timestamp: number) {
     this.clearContext();
 
     const deltaTime = this.updateFps(timestamp);
     this.drawFps();
-    this.drawGame();
 
     this.acc += deltaTime;
     while (this.acc >= MOVE_INTERNAL) {
@@ -68,5 +102,7 @@ export class Game {
 
       this.acc -= MOVE_INTERNAL;
     }
+
+    this.drawGame();
   }
 }
