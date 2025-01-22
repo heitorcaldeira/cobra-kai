@@ -2,7 +2,7 @@ import Board from './board.mjs';
 import { generateRandom, Vector2, Vector4 } from './common.mjs';
 import Snake, { CELL_SIZE } from './snake.mjs';
 
-const VELOCITY = 10;
+const VELOCITY = 16;
 const FOOD_LIMIT = 10;
 const MOVE_INTERNAL = 1 / VELOCITY;
 
@@ -84,8 +84,8 @@ export class Game {
   addFoods() {
     if (this.foodCount < FOOD_LIMIT) {
       this.foodCount += 1;
-      const x = Math.floor(generateRandom(this.board.boundaries.l, this.board.boundaries.r / 2) / CELL_SIZE);
-      const y = Math.floor(generateRandom(this.board.boundaries.t, this.board.boundaries.b / 2) / CELL_SIZE);
+      const x = Math.floor(generateRandom(this.board.boundaries.l, this.board.boundaries.r / 2) / CELL_SIZE) - 1;
+      const y = Math.floor(generateRandom(this.board.boundaries.t, this.board.boundaries.b / 2) / CELL_SIZE) - 1;
       this.foods.push(new Vector2(x, y));
     }
   }

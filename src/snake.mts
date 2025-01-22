@@ -1,6 +1,6 @@
 import { Vector2 } from './common.mjs';
 
-export const CELL_SIZE = 20;
+export const CELL_SIZE = 40;
 
 export default class Snake {
   ctx: CanvasRenderingContext2D;
@@ -56,6 +56,7 @@ export default class Snake {
     old.x = this.body[head].x;
     old.y = this.body[head].y;
 
+    // TODO: add soft movement
     this.body[head] = this.body[head].add(this.dir);
 
     for (let i = head - 1; i >= 0; i--) {

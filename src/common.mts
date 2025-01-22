@@ -14,6 +14,10 @@ export class Vector2 {
   scale(v: number) {
     return new Vector2(this.x * v, this.y * v);
   }
+
+  divide(v: number) {
+    return new Vector2(this.x / v, this.y / v);
+  }
 }
 
 export class Vector4 {
